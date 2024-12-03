@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Main Vault]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib\media\favicon.png</url><title>Main Vault</title><link></link></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Tue, 03 Dec 2024 09:11:49 GMT</lastBuildDate><atom:link href="lib\rss.xml" rel="self" type="application/rss+xml"/><pubDate>Tue, 03 Dec 2024 09:11:43 GMT</pubDate><ttl>60</ttl><dc:creator></dc:creator><item><title><![CDATA[Алгоритм обогащения данных clickhouse]]></title><description><![CDATA[ 
+ <br>
+<br>ДИТ уже выгружает cdr, нужно передать зип архив на увр.
+<br>На увр принять зип архив, разархивировать. В архиве 1 файл json, в нём много объектов - 1 объект = один вызов.
+<br>создать пустой файл, пройтись циклом по всем объектом в json и заменить инн на id оператора - список операторов с инн нужно брать из другого файла (зип в котором csv)
+<br>пройтись циклом по новому файлу - найти совпадения по А, Б, С номеру и времени вызова с записями в clickhouse (совпадение по времени может быть не точным +- пару минут)
+<br>добавить в таблицу id_src и id_dst и duration
+<br>ТЗ для chatGPT<br>
+<br>Скрипт должен раз в минуту проверять наличие файлов .zip в папке
+<br>Названия файлов имеют вид 1345_2024_09_26_08_20_00.zip, где 2024_09_26_08_20_00 дата и время.
+<br>Разархивировать в рабочую директорию первый по дате-времени файл<br>
+3.1. формат разархивированного файла -.json в котором хранится множество объектов<br>
+3.2. объект имеет вид - {"ID_UVR":1345,"NUM_A":"74957999466","NUM_B":"74954809485","DATE":"2024-07-04T07:30:21+03:00","INN_SRC":"7710436796","INN_DST":"7740000076","DURATION":6}
+<br>Раз в 5 минут проверять наличие новых файлов в папке /etc/uvr/digests/operators
+<br>Файлы имеют вид  OPR_2024_09_25_00_00_00.zip где 2024_09_25_00_00_00 это дата-время.
+<br>При наличии нового файла разархивировать его в рабочую директорию и удалить предыдущий файл.<br>
+6.1. структура csv состоит из столбцов |id_src|opr_name|opr_nick|inn|bdpn_code|name_brand| 
+<br>Циклом сравнить INN_SRC и INN_DST каждого объекта из файла в пункте 3 со значением из столбца inn файла из пункта 6<br>
+7.1 заменить INN_SRC на значение id_src<br>
+7.2 заменить INN_DST на значение id_src
+<br>Циклом сравнить каждый объект из файла в пункте 7 с записями в СУБД clickhouse (сравнение проводить по точному совпадению NUM_A, NUM_B, NUM_C и не точному совпадению DATE разница может достигать 5 минут)<br>
+8.1 Структура таблицы сalls в СУБД clickhouse - NUM_A | NUM_B | NUM_D | NUM_C | DATE | DATE_ACT | ID_SRC | ID_DST | SESSION_ID | ID_REL | VRF_RSP | RELEASE_CODE | DURATION | ID_UVR_T | CALL_ID | CALL_TYPE<br>
+8.2 При совпадении заполнить поля ID_SRC, ID_DST, DURATION соблюдая условие:<br>
+ID_SRC = INN_SRC<br>
+ID_DST = INN_DST<br>
+DURATION = DURATION<br>
+если INN_SRC = 11069 - ID_SRC не заполнять<br>
+если INN_DST = 11069 - ID_DST не заполнять
+<br>Добавь логирование.
+<br> Было не так быстро как хотелось бы.   ]]></description><link>antifraud\алгоритм-обогащения-данных-clickhouse.html</link><guid isPermaLink="false">Antifraud/Алгоритм обогащения данных clickhouse.md</guid><pubDate>Mon, 28 Oct 2024 09:44:27 GMT</pubDate></item><item><title><![CDATA[Нужно подумать.]]></title><description><![CDATA[<a class="tag" href="?query=tag:УврОтГРЧЦ" style="background-color: rgb(4, 108, 116); color: white; font-weight: 700; border: none; border-radius: 1em; padding: 0.2em 0.5em;">#УврОтГРЧЦ</a> 
+ <br><a href=".?query=tag:УврОтГРЧЦ" class="tag" target="_blank" rel="noopener nofollow">#УврОтГРЧЦ</a> <br>
+<br>
+
+
+<br>process exporter?
+<br>парсер логов в prometeus?
+
+
+<br>
+
+
+<br>только для исходящих вызовов?
+<br>отдельный процесс который будет отвечать?
+<br>что отвечать?
+<br>резервировать процесс?
+
+
+<br>
+
+
+<br>разные Ip для одного увр?
+
+<br>если так кто будет заниматься настройкой vipnet?
+<br>клон машины?
+<br>active-standby?
+
+
+<br>в случае отлёта облаков?
+
+<br>белый список?(нет)
+<br>хз
+
+
+
+
+]]></description><link>antifraud\нужно-подумать..html</link><guid isPermaLink="false">Antifraud/Нужно подумать..md</guid><pubDate>Wed, 06 Nov 2024 08:48:43 GMT</pubDate></item><item><title><![CDATA[репликацию]]></title><description><![CDATA[ 
+ <br>Реплика на 10.200.70.61 Maria DB.<br>
+Написана вэбка на react + node<br>
+<a rel="noopener nofollow" class="external-link" href="https://github.com/Asmodian89/mern_project" target="_blank">https://github.com/Asmodian89/mern_project</a>]]></description><link>antifraud\репликацию.html</link><guid isPermaLink="false">Antifraud/репликацию.md</guid><pubDate>Tue, 05 Nov 2024 08:47:58 GMT</pubDate></item><item><title><![CDATA[Скрипт обработки CDRs для УВр]]></title><description><![CDATA[ 
+ <br>
+
+import os
+import zipfile
+import json
+import csv
+import time
+import logging
+from datetime import datetime
+from clickhouse_driver import Client
+
+# Настройка логирования
+logging.basicConfig(filename='script.log', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Настройки
+WORK_DIR = '/etc/uvr'
+OPR_DIR = '/etc/uvr/digests/operators'
+CHECK_INTERVAL_FILES = 60  # интервал проверки .zip файлов в секундах
+CHECK_INTERVAL_OPR = 300  # интервал проверки наличия OPR файлов в секундах
+CLICKHOUSE_HOST = 'localhost'
+CLICKHOUSE_DB = 'uvr_908'
+
+# Функция для поиска актуального OPR файла в рабочей директории
+def get_latest_opr_csv(work_dir):
+    csv_files = [f for f in os.listdir(work_dir) if f.startswith('OPR_') and f.endswith('.csv')]
+    if not csv_files:
+        return None
+    csv_files.sort(key=lambda x: datetime.strptime('_'.join(x.split('_')[1:]), '%Y_%m_%d_%H_%M_%S.csv'))
+    return os.path.join(work_dir, csv_files[-1])
+
+# Функция для проверки соответствия даты файла текущей дате
+def is_file_date_current(file_name):
+    try:
+        date_str = '_'.join(file_name.split('_')[1:4])
+        file_date = datetime.strptime(date_str, '%Y_%m_%d')
+        return file_date.date() == datetime.now().date()
+    except ValueError:
+        logging.error(f"Ошибка извлечения даты из имени файла: {file_name}")
+        return False
+
+# Функция для обработки OPR файла (CSV)
+def process_opr_csv(csv_file):
+    opr_data = {}
+    row_count = 0
+
+    try:
+        with open(csv_file, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f, delimiter=';')
+            for row in reader:
+                opr_data[row['inn']] = row['id_src']
+                row_count += 1
+
+        logging.info(f"Прочитан файл OPR: {csv_file}, количество строк: {row_count}")
+        return opr_data, row_count
+    except Exception as e:
+        logging.error(f"Ошибка при чтении CSV файла {csv_file}: {str(e)}")
+        return None, 0
+
+# Функция для разархивирования OPR файла в рабочую директорию
+def unzip_file(zip_file, extract_to):
+    try:
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+        logging.info(f"Разархивирован файл {zip_file} в {extract_to}")
+    except Exception as e:
+        logging.error(f"Ошибка при разархивировании файла {zip_file}: {str(e)}")
+
+# Функция для поиска самого нового OPR файла в ZIP формате
+def get_newest_opr_file(directory, pattern, extension='.zip'):
+    opr_files = [f for f in os.listdir(directory) if f.startswith(pattern) and f.endswith(extension)]
+    if not opr_files:
+        return None
+    opr_files.sort(key=lambda x: datetime.strptime('_'.join(x.split('_')[1:]), '%Y_%m_%d_%H_%M_%S' + extension))
+    return os.path.join(directory, opr_files[-1])
+
+# Обработка OPR файлов с учетом актуальности даты
+def process_opr_file():
+    csv_file = get_latest_opr_csv(WORK_DIR)
+    if csv_file and is_file_date_current(csv_file):
+        logging.info(f"Найден актуальный CSV файл: {csv_file}")
+        opr_data, row_count = process_opr_csv(csv_file)
+        return opr_data, row_count
+
+    opr_file = get_newest_opr_file(OPR_DIR, 'OPR_', '.zip')
+    if opr_file:
+        unzip_file(opr_file, WORK_DIR)
+        new_csv_file = os.path.join(WORK_DIR, os.path.splitext(os.path.basename(opr_file))[0] + '.csv')
+
+        if os.path.exists(new_csv_file):
+            opr_data, row_count = process_opr_csv(new_csv_file)
+            if csv_file and csv_file != new_csv_file:
+                os.remove(csv_file)
+                logging.info(f"Удален старый CSV файл: {csv_file}")
+
+            return opr_data, row_count
+        else:
+            logging.error(f"CSV файл не найден после разархивирования: {new_csv_file}")
+
+    logging.error(f"Не найден OPR файл с текущей датой в директории: {OPR_DIR}")
+    return None, 0
+
+# Функция для разархивирования и обработки JSON-файла из ZIP
+def process_zip_file(zip_file):
+    extract_dir = '/tmp/unzipped_files'
+    os.makedirs(extract_dir, exist_ok=True)
+    
+    json_file_path = None
+    try:
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
+        logging.info(f"Файл {zip_file} успешно разархивирован в {extract_dir}")
+
+        json_files = [f for f in os.listdir(extract_dir) if f.endswith('.json')]
+        if not json_files:
+            logging.error(f"JSON файл не найден в архиве {zip_file}")
+            return []
+
+        json_file_path = os.path.join(extract_dir, json_files[0])
+        data = process_json_file(json_file_path)
+
+        return data
+    except Exception as e:
+        logging.error(f"Ошибка при разархивировании файла {zip_file}: {str(e)}")
+        return []
+    finally:
+        if json_file_path and os.path.exists(json_file_path):
+            os.remove(json_file_path)
+            logging.info(f"Удален разархивированный JSON файл: {json_file_path}")
+
+# Функция для чтения JSON-файла
+def process_json_file(json_file):
+    data = []
+    encodings = ['utf-8', 'ISO-8859-1', 'cp1251']
+
+    for encoding in encodings:
+        try:
+            with open(json_file, 'r', encoding=encoding) as f:
+                for line in f:
+                    try:
+                        obj = json.loads(line.strip())
+                        data.append(obj)
+                    except json.JSONDecodeError as e:
+                        logging.error(f"Ошибка при декодировании строки JSON: {str(e)}")
+            logging.info(f"Прочитан JSON файл: {json_file} с кодировкой {encoding}")
+            break
+        except UnicodeDecodeError as e:
+            logging.warning(f"Не удалось прочитать файл {json_file} с кодировкой {encoding}: {str(e)}")
+            continue
+
+    if not data:
+        logging.error(f"Не удалось прочитать файл {json_file} с доступными кодировками.")
+    
+    return data
+
+# Функция для выполнения SELECT и последующего ALTER TABLE
+def select_and_update_data(client, num_a, num_b, new_id_src, new_id_dst, duration, num_c, date):
+    where_clause = f"NUM_A = '{num_a}' AND NUM_B = '{num_b}'"
+    if num_c:
+        where_clause += f" AND NUM_C = '{num_c}'"
+    where_clause += f" AND ABS(toUnixTimestamp(DATE) - toUnixTimestamp('{date}')) &lt;= 300"
+
+    # Выполняем SELECT для проверки наличия строк
+    select_query = f"SELECT COUNT(*) FROM calls WHERE {where_clause}"
+    try:
+        result = client.execute(select_query)
+        count = result[0][0]
+        if count &gt; 0:
+            # Формируем UPDATE только если SELECT нашел строки
+            update_clauses = []
+            if new_id_src is not None and new_id_src != '11069':
+                update_clauses.append(f"ID_SRC = {new_id_src}")
+            if new_id_dst is not None and new_id_dst != '11069':
+                update_clauses.append(f"ID_DST = {new_id_dst}")
+            if duration is not None:
+                update_clauses.append(f"DURATION = {duration}")
+            if num_c is not None:
+                update_clauses.append(f"NUM_C = {num_c}")
+
+            if update_clauses:
+                update_query = f"""
+                ALTER TABLE calls
+                UPDATE {', '.join(update_clauses)}
+                WHERE {where_clause}
+                """
+                client.execute(update_query)
+                return 1  # Считаем успешным, если запросы прошли без ошибок
+    except Exception as e:
+        logging.error(f"Ошибка при выполнении SELECT или ALTER TABLE в ClickHouse: {str(e)}")
+    
+    return 0
+
+# Функция для обработки данных из JSON и обновления ClickHouse
+def compare_with_clickhouse_and_update(data, opr_data):
+    client = Client(CLICKHOUSE_HOST, database=CLICKHOUSE_DB)
+    
+    total_json_rows = len(data)
+    alter_count = 0
+
+    for obj in data:
+        try:
+            date = datetime.strptime(obj['DATE'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            logging.error(f"Ошибка при преобразовании даты для NUM_A: {obj['NUM_A']} NUM_B: {obj['NUM_B']}")
+            continue
+
+        id_src = opr_data.get(obj['INN_SRC'], None) if obj['INN_SRC'] != '11069' else None
+        id_dst = opr_data.get(obj['INN_DST'], None) if obj['INN_DST'] != '11069' else None
+        duration = obj.get('DURATION', None)
+        num_c = obj.get('NUM_C', None)
+
+        # Выполняем SELECT и, если найдено, сразу выполняем UPDATE
+        if select_and_update_data(client, obj['NUM_A'], obj['NUM_B'], id_src, id_dst, duration, num_c, date):
+            alter_count += 1
+
+    logging.info(f"Обработано строк в JSON: {total_json_rows}, количество успешных ALTER TABLE запросов: {alter_count}")
+    client.disconnect()
+
+# Основной цикл проверки файлов
+def main():
+    last_opr_check = time.time() - CHECK_INTERVAL_OPR
+    opr_data = {}
+
+    while True:
+        if time.time() - last_opr_check &gt;= CHECK_INTERVAL_OPR:
+            opr_data, row_count = process_opr_file()
+            last_opr_check = time.time()
+
+        json_zip_file = get_newest_opr_file(WORK_DIR, '', '.zip')
+        if json_zip_file:
+            json_data = process_zip_file(json_zip_file)
+            if json_data and opr_data:
+                compare_with_clickhouse_and_update(json_data, opr_data)
+        else:
+            logging.info("Более новый OPR .zip файл не найден, ожидаем следующий.")
+
+        time.sleep(CHECK_INTERVAL_FILES)
+
+if __name__ == "__main__":
+    main()
+]]></description><link>antifraud\скрипт-обработки-cdrs-для-увр.html</link><guid isPermaLink="false">Antifraud/Скрипт обработки CDRs для УВр.md</guid><pubDate>Wed, 06 Nov 2024 05:21:41 GMT</pubDate></item><item><title><![CDATA[Смешанный режим работы Kamailio]]></title><description><![CDATA[ 
+ <br>На <a data-href="Kamailio для работы с Билайном" href="antifraud\kamailio-для-работы-с-билайном.html" class="internal-link" target="_self" rel="noopener nofollow">Kamailio для работы с Билайном</a> настроен фильтр по А, Б номеру для работы с <a data-href="Увр от ГРЧЦ" href="antifraud\увр-от-грчц.html" class="internal-link" target="_self" rel="noopener nofollow">Увр от ГРЧЦ</a> по sip.<br><img alt="общая схема антифрод увр.drawio.png" src="antifraud\resources\общая-схема-антифрод-увр.drawio.png">]]></description><link>antifraud\смешанный-режим-работы-kamailio.html</link><guid isPermaLink="false">Antifraud/Смешанный режим работы Kamailio.md</guid><pubDate>Fri, 27 Sep 2024 08:57:27 GMT</pubDate><enclosure url="antifraud\resources\общая-схема-антифрод-увр.drawio.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src=&quot;antifraud\resources\общая-схема-антифрод-увр.drawio.png&quot;&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[Статистика]]></title><description><![CDATA[ 
+ <br>Файлы статистики, которые формирует УВр - csv файл.<br>
+Структура файла:<br>|ID_SRC|START_DATE|DUR|ATTMS|TBVRF|RJCTS|TMOUTS|ERR1|ERR2|<br>где ID_SRC - id оператора с которого пришёл вызов<br>
+START_DATE - дата/время начала сбора статистики<br>
+DUR - время сбора статистики в секундах (по умолчанию 900)<br>
+остальное это счётчики которые формируются магией УВр.<br>В ванильном УВр, ID_SRC  берётся из префикса в поле From. В нашем случае его нет - УВр устанавливает значение по умолчанию - 0.<br>Задумка в том что изменить исходный код так что бы вместо id_src подставлялся А номер.<br>
+Должен получиться файл заполненный всеми вызовами прошедшими через УВр за 15 минут. (насколько я понимаю в статистике учитываются только входящая верификация).<br>У нас уже есть скрипт который обрабатывает <a data-href="CDR" href="antifraud\cdr.html" class="internal-link" target="_self" rel="noopener nofollow">CDR</a>, одна из его функций это замена инн оператора из файла с cdr на значение id из справочника грчц.<br>
+Нужно будет построчно сравнить каждую и запись из файла со статистикой с измененным CDR ( проверяем А номер и время +- пару минут).]]></description><link>antifraud\статистика.html</link><guid isPermaLink="false">Antifraud/Статистика.md</guid><pubDate>Tue, 03 Dec 2024 08:33:03 GMT</pubDate></item><item><title><![CDATA[Тесты ГРЧЦ]]></title><description><![CDATA[ 
+ <br>Тесты <a data-href="Увр от ГРЧЦ" href="antifraud\увр-от-грчц.html" class="internal-link" target="_self" rel="noopener nofollow">Увр от ГРЧЦ</a> через бот в телеге проходить достаточно просто, если подготовится))<br>
+Как и в случае <a data-href="Kamailio для работы с Билайном" href="antifraud\kamailio-для-работы-с-билайном.html" class="internal-link" target="_self" rel="noopener nofollow">Kamailio для работы с Билайном</a> самая большая боль это <a data-href="CDR" href="antifraud\cdr.html" class="internal-link" target="_self" rel="noopener nofollow">CDR</a> т.к. они выгружаются дитом раз в час с задержкой по времени в данных до 1,5 часов<br>
+Например в выгрузке в 15:30 будут вызовы с 14:00 до 15:00 . На основе этих cdr формируются инциденты и статистика.<br>важный момент!!!<br>
+по умолчанию статистика и инциденты формируются раз в 15 минут. Тесты нужно планировать так чтобы попасть в 15 минутное окно и успеть внести данные в базу.<br>Порядок действий примерно такой:<br>
+<br>делаем исходящий вызов с тестового номера на эталонный номер грчц 4954809485
+<br>ждем пока появится запись в <a data-href="clickhouse" href="antifraud\clickhouse.html" class="internal-link" target="_self" rel="noopener nofollow">clickhouse</a>
+<br>начинаем читирить - alter table calls update ID_DST = 11115, ID_SRC = 11069, DURATION = 5 where CALL_ID = 'смотрим в пункте 2'; 
+<br>дальше курим минимум 2 часа
+<br>запускаем тест  через бот - 11069,980,74957999466,74957999466 после того как будет запланирована таска следим за записями в базе - должно появится 3 входящих звонка с разницей примерно в 1 минуту (один из них увр отобьёт). Важный момент - на устройстве с тестовым номером должен быть настроен автоответ!
+<br>В нашем случае тестовые вызовы приходили через комстар поэтом читирим ещё раз - alter table calls update ID_SRC = 11369, ID_DST = 11069, DURATION = 0 where CALL_ID =  'так же смотрим в базе';<br>
+alter table calls update ID_SRC = 11369, ID_DST = 11069, DURATION = 3 where CALL_ID = 'так же смотрим в базе';<br>
+alter table calls update ID_SRC = 11369, ID_DST = 11069, DURATION = 3 where CALL_ID = 'так же смотрим в базе';
+<br>Порядок действий оставляем как есть, меняем способ обогащения данных.<br>
+Будем использовать встроенный <a data-href="cli" href="antifraud\cli.html" class="internal-link" target="_self" rel="noopener nofollow">cli</a>]]></description><link>antifraud\тесты-грчц.html</link><guid isPermaLink="false">Antifraud/Тесты ГРЧЦ.md</guid><pubDate>Tue, 05 Nov 2024 08:50:51 GMT</pubDate></item><item><title><![CDATA[Транзитные вызовы]]></title><description><![CDATA[ 
+ <br>В схеме <a data-href="Kamailio для работы с Билайном" href="antifraud\kamailio-для-работы-с-билайном.html" class="internal-link" target="_self" rel="noopener nofollow">Kamailio для работы с Билайном</a> транзитные вызовы распознаются на уровне Kamailio и отбиваются соответствующим релизом - 500 TRANSIT CALL.<br>
+C <a data-href="Увр от ГРЧЦ" href="antifraud\увр-от-грчц.html" class="internal-link" target="_self" rel="noopener nofollow">Увр от ГРЧЦ</a> скорее всего будет так же, однако есть нюанс с историческими данными по транзитным вызовам - УВр о них ничего не знает.<br>
+Нужно все транзитные вызовы записать в <a data-href="clickhouse" href="antifraud\clickhouse.html" class="internal-link" target="_self" rel="noopener nofollow">clickhouse</a> и через <a data-href="cli" href="antifraud\cli.html" class="internal-link" target="_self" rel="noopener nofollow">cli</a> этого сделать не получится т.к. для это запись должна уже существовать. Остаётся добавлять данные нативными методами. Повлиять на инциденты и статистику это не должно т.к. транзитные вызовы не верифицируются.]]></description><link>antifraud\транзитные-вызовы.html</link><guid isPermaLink="false">Antifraud/Транзитные вызовы.md</guid><pubDate>Tue, 05 Nov 2024 11:52:45 GMT</pubDate></item><item><title><![CDATA[Увр от ГРЧЦ]]></title><description><![CDATA[<a class="tag" href="?query=tag:УврОтГРЧЦ" style="background-color: rgb(4, 108, 116); color: white; font-weight: 700; border: none; border-radius: 1em; padding: 0.2em 0.5em;">#УврОтГРЧЦ</a> 
+ <br>Единственный плюс их поделки что есть обширная документация.<br>Возможно будут проблемы <a data-href="CDR" href="antifraud\cdr.html" class="internal-link" target="_self" rel="noopener nofollow">CDR</a><br>Контакты поддержки <a data-tooltip-position="top" aria-label="mailto:support.operator@gardatech.ru" rel="noopener nofollow" class="external-link" href="mailto:support.operator@gardatech.ru" target="_blank">support.operator@gardatech.ru</a><br>
+<a data-tooltip-position="top" aria-label="mailto:af@noc.gov.ru" rel="noopener nofollow" class="external-link" href="mailto:af@noc.gov.ru" target="_blank">af@noc.gov.ru</a> и <a data-tooltip-position="top" aria-label="mailto:af.skzi@grfc.ru" rel="noopener nofollow" class="external-link" href="mailto:af.skzi@grfc.ru" target="_blank">af.skzi@grfc.ru</a><br>если всё пойдёт по звезде <a data-tooltip-position="top" aria-label="безисходность.canvas" data-href="безисходность.canvas" href="antifraud\безисходность.html" class="internal-link" target="_self" rel="noopener nofollow">безисходность</a><br><a href=".?query=tag:УврОтГРЧЦ" class="tag" target="_blank" rel="noopener nofollow">#УврОтГРЧЦ</a>]]></description><link>antifraud\увр-от-грчц.html</link><guid isPermaLink="false">Antifraud/Увр от ГРЧЦ.md</guid><pubDate>Fri, 08 Nov 2024 08:01:04 GMT</pubDate></item><item><title><![CDATA[Antifraud]]></title><description><![CDATA[ 
+ <br>В нашем случае есть несколько вариантов:<br>1.<a data-href="Kamailio для работы с Билайном" href="antifraud\kamailio-для-работы-с-билайном.html" class="internal-link" target="_self" rel="noopener nofollow">Kamailio для работы с Билайном</a><br>
+2.<a data-href="Увр от ГРЧЦ" href="antifraud\увр-от-грчц.html" class="internal-link" target="_self" rel="noopener nofollow">Увр от ГРЧЦ</a><br>
+3.<a data-href="Смешанный режим работы Kamailio" href="antifraud\смешанный-режим-работы-kamailio.html" class="internal-link" target="_self" rel="noopener nofollow">Смешанный режим работы Kamailio</a><br>
+4.<a data-href="clickhouse" href="antifraud\clickhouse.html" class="internal-link" target="_self" rel="noopener nofollow">clickhouse</a><br>
+5.<a data-href="CDR" href="antifraud\cdr.html" class="internal-link" target="_self" rel="noopener nofollow">CDR</a><br>
+6.<a data-href="Тесты ГРЧЦ" href="antifraud\тесты-грчц.html" class="internal-link" target="_self" rel="noopener nofollow">Тесты ГРЧЦ</a><br>
+7.<a data-href="Алгоритм обогащения данных clickhouse" href="antifraud\алгоритм-обогащения-данных-clickhouse.html" class="internal-link" target="_self" rel="noopener nofollow">Алгоритм обогащения данных clickhouse</a>]]></description><link>antifraud\antifraud.html</link><guid isPermaLink="false">Antifraud/Antifraud.md</guid><pubDate>Tue, 29 Oct 2024 06:00:37 GMT</pubDate></item><item><title><![CDATA[CDR]]></title><description><![CDATA[ 
+ <br>SX в cdr формирует start time от начала разговора, в то время как в базу увр, записывается время инициирующего Invite.<br>Пример:<br>
+на увр два вызова<br>
+74957999466 │ 79060594119 │ 2024-09-30 12:53:14.533044520<br>
+79060594119 │ 74957999466 │ 2024-09-30 12:53:33.917171166<br>в cdr эти же вызовы с другим временем<br>
+"NUM_A":"74957999466","NUM_B":"79060594119","DATE":"2024-09-30T12:53:22+03:00",<br>
+"NUM_A":"79060594119","NUM_B":"74957999466","DATE":"2024-09-30T12:53:35+03:00",<br>Дебил блять, тут а б номера разные<br><a data-href="Скрипт обработки CDRs для УВр" href="antifraud\скрипт-обработки-cdrs-для-увр.html" class="internal-link" target="_self" rel="noopener nofollow">Скрипт обработки CDRs для УВр</a><br>Как проходить <a data-href="Тесты ГРЧЦ" href="antifraud\тесты-грчц.html" class="internal-link" target="_self" rel="noopener nofollow">Тесты ГРЧЦ</a>]]></description><link>antifraud\cdr.html</link><guid isPermaLink="false">Antifraud/CDR.md</guid><pubDate>Mon, 28 Oct 2024 09:45:28 GMT</pubDate></item><item><title><![CDATA[cli]]></title><description><![CDATA[ 
+ <br>В <a data-href="Увр от ГРЧЦ" href="antifraud\увр-от-грчц.html" class="internal-link" target="_self" rel="noopener nofollow">Увр от ГРЧЦ</a> есть встроенный механизм обогащения данных <a data-href="clickhouse" href="antifraud\clickhouse.html" class="internal-link" target="_self" rel="noopener nofollow">clickhouse</a>.<br>
+Запускается из папки где развернут Увр.<br>
+Команда имеет вид:<br>
+/etc/uvr/bin/cli 178.238.113.14 7565 update-records CALL_ID=XXXXXX,CALL_TYPE=XXXX,ID_SRC=YYYY,ID_DST=YYYY,DURATION=YYYY<br>Поля CALL_ID и CALL_TYPE обязательные - по ним однозначно идентифицируется запись в базе. Т.е. при обогащении данных всё равно нужно делать SELECT.<br>
+CALL_TYPE может быть IN или OUT.]]></description><link>antifraud\cli.html</link><guid isPermaLink="false">Antifraud/cli.md</guid><pubDate>Tue, 05 Nov 2024 08:57:32 GMT</pubDate></item><item><title><![CDATA[clickhouse]]></title><description><![CDATA[<a class="tag" href="?query=tag:УврОтГРЧЦ" style="background-color: rgb(4, 108, 116); color: white; font-weight: 700; border: none; border-radius: 1em; padding: 0.2em 0.5em;">#УврОтГРЧЦ</a> 
+ <br>Ещё одна субд в нашем зоопарке.<br>
+немного инфы по таблицам (пока никакие параметры не трогали всё из коробки от <a href=".?query=tag:УврОтГРЧЦ" class="tag" target="_blank" rel="noopener nofollow">#УврОтГРЧЦ</a>)<br> CREATE TABLE system.mutations<br>
+(<br>
+database String,<br>
+table String,<br>
+mutation_id String,<br>
+command String,<br>
+create_time DateTime,<br>
+block_numbers.partition_id Array(String),<br>
+block_numbers.number Array(Int64),<br>
+parts_to_do_names Array(String),<br>
+parts_to_do Int64,<br>
+is_done UInt8,<br>
+latest_failed_part String,<br>
+latest_fail_time DateTime,<br>
+latest_fail_reason String<br>
+)<br>
+ENGINE = SystemMutations<br>
+COMMENT 'SYSTEM TABLE is built on the fly.' │<br> CREATE TABLE uvr_980.calls<br>
+(<br>
+NUM_A String,<br>
+NUM_B String,<br>
+NUM_D String,<br>
+NUM_C String,<br>
+DATE DateTime64(9),<br>
+DATE_ACT DateTime64(0),<br>
+ID_SRC Nullable(UInt32),<br>
+ID_DST Nullable(UInt32),<br>
+SESSION_ID UInt64,<br>
+ID_REL UInt8,<br>
+VRF_RSP Int16,<br>
+RELEASE_CODE Nullable(UInt8),<br>
+DURATION Nullable(UInt16),<br>
+ID_UVR_T Nullable(UInt16),<br>
+CALL_ID String,<br>
+CALL_TYPE UInt8,<br>
+INDEX NUM_A_IX CALL_ID TYPE set(0) GRANULARITY 8192<br>
+)<br>
+ENGINE = ReplacingMergeTree<br>
+PARTITION BY toUInt64(formatDateTime(DATE, '%Y%m%d%H'))<br>
+ORDER BY (DATE, NUM_A, NUM_B, CALL_TYPE)<br>
+TTL (toDateTime(DATE) + toIntervalYear(1)) + toIntervalHour(1)<br>
+SETTINGS merge_with_ttl_timeout = 3600, index_granularity = 8192 │<br>пока это всё возможно будем пробовать другие параметры например TTL<br>
+<a rel="noopener nofollow" class="external-link" href="https://clickhouse.com/docs/ru/engines/table-engines/mergetree-family/mergetree" target="_blank">https://clickhouse.com/docs/ru/engines/table-engines/mergetree-family/mergetree</a><br>
+всё будет зависеть от того насколько эффективно будет работать <a data-href="Алгоритм обогащения данных clickhouse" href="antifraud\алгоритм-обогащения-данных-clickhouse.html" class="internal-link" target="_self" rel="noopener nofollow">Алгоритм обогащения данных clickhouse</a>]]></description><link>antifraud\clickhouse.html</link><guid isPermaLink="false">Antifraud/clickhouse.md</guid><pubDate>Tue, 29 Oct 2024 06:03:44 GMT</pubDate></item><item><title><![CDATA[Kamailio для работы с Билайном]]></title><description><![CDATA[ 
+ <br>логика работы такова -<br>
+На SX настроены две транковые группы (для входящей и исходящей связи).<br>
+На Kamailio - настроена маршрутизация http в сторону Билайна (с ними настроен L2) запросов исходя из А, Б, С номера.<br>
+Данные запросов/ответов записываются в локальную БД (настроили <a data-href="репликацию" href="antifraud\репликацию.html" class="internal-link" target="_self" rel="noopener nofollow">репликацию</a>).<br>
+схема логики работы kamailio:<br><img alt="Логика kamailio антифрод.drawio.png" src="antifraud\resources\логика-kamailio-антифрод.drawio.png">]]></description><link>antifraud\kamailio-для-работы-с-билайном.html</link><guid isPermaLink="false">Antifraud/Kamailio для работы с Билайном.md</guid><pubDate>Tue, 05 Nov 2024 12:04:07 GMT</pubDate><enclosure url="antifraud\resources\логика-kamailio-антифрод.drawio.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src=&quot;antifraud\resources\логика-kamailio-антифрод.drawio.png&quot;&gt;&lt;/figure&gt;</content:encoded></item></channel></rss>
